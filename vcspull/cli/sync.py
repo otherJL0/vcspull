@@ -125,6 +125,7 @@ def update_repo(repo_dict):
     r = create_repo_from_pip_url(**repo_dict)  # Creates the repo object
 
     remote_settings = repo_dict.get("remotes", {})
+    print(f"remote_settings: {remote_settings}")
     if remote_settings.get("origin", {}) == {}:
         from libvcs.git import GitRemote
 

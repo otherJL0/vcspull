@@ -218,3 +218,50 @@ def test_updating_remote(
             else config["url"]
         ).replace("git+", "")
         assert config_remote_url == current_remote_url
+
+
+@pytest.mark.parametrize(
+    "config_tpl",
+    [
+        """
+        {tmpdir}/study/myrepo:
+            {CLONE_NAME}: git+file://{repo_dir}
+        """,
+    ],
+)
+def test_simple_url(
+    tmpdir: LEGACY_PATH,
+    create_git_dummy_repo: Callable[[str], LEGACY_PATH],
+    config_tpl: str,
+    capsys: pytest.LogCaptureFixture,
+):
+    """Test config output with varation of config formats"""
+    dummy_repo_name = "dummy_repo"
+    dummy_repo = create_git_dummy_repo(dummy_repo_name)
+    print("test")
+    print("test")
+
+    config_file = write_config_remote(
+        tmpdir=tmpdir, config_tpl=config_tpl, repo_dir=dummy_repo, clone_name="myclone"
+    )
+    configs = load_configs([str(config_file)])
+
+    # TODO: Merge repos
+    repos = filter_repos(configs, repo_dir="*")
+    assert len(repos) == 1
+    from pprint import pprint
+
+    pprint(repos[0], indent=2)
+
+    for repo_dict in repos:
+        repo_url = repo_dict["url"].replace("git+", "")
+        repo = update_repo(repo_dict)
+        remotes = repo.remotes() or []
+        remote_names = set(remotes.keys())
+        assert {"origin"}.issubset(remote_names)
+        # captured = capsys.readouterr()
+        # assert f"Updating remote {list(remote_names)[0]}" in captured.out
+
+        for remote_name, remote_info in remotes.items():
+            current_remote = repo.remote(remote_name)
+            assert current_remote.fetch_url == repo_url
