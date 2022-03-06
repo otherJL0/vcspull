@@ -125,17 +125,16 @@ def update_repo(repo_dict):
     r = create_repo_from_pip_url(**repo_dict)  # Creates the repo object
 
     remote_settings = repo_dict.get("remotes", {})
-    print(f"before remote_settings: {remote_settings}")
     if remote_settings.get("origin", {}) == {}:
-        print("setting origin by hand")
         from libvcs.git import GitRemote
+
+        remote_url = repo_dict["pip_url"].replace("git+", "")
 
         remote_settings["origin"] = GitRemote(
             name="origin",
-            push_url=repo_dict["pip_url"],
-            fetch_url=repo_dict["pip_url"],
+            push_url=remote_url,
+            fetch_url=remote_url,
         )
-    print(f"after remote_settings: {remote_settings}")
     remotes_updated = False
     r.update_repo()  # Creates repo if not exists and fetches
 
@@ -143,6 +142,11 @@ def update_repo(repo_dict):
         config_remote_name = remote_name  # From config file
         try:
             current_remote = r.remote(config_remote_name)
+            if current_remote is not None:
+                current_remote._replace(
+                    fetch_url=current_remote.fetch_url.replace("git+", "")
+                )
+
         except FileNotFoundError:  # git repo doesn't exist yet, so cna't be outdated
             break
 

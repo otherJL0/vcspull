@@ -96,7 +96,12 @@ def test_config_variations(
     configs = load_configs([str(config_file)])
 
     # TODO: Merge repos
-    repos = filter_repos(configs, repo_dir="*")
+    # repos = filter_repos(configs, repo_dir="*")
+    from pprint import pprint
+
+    pprint("configs", indent=2)
+    pprint(configs, indent=2)
+    repos = filter_repos(configs)
     assert len(repos) == 1
 
     for repo_dict in repos:
@@ -227,6 +232,12 @@ def test_updating_remote(
         {tmp_path}/study/myrepo:
             {CLONE_NAME}: git+file://{repo_dir}
         """,
+        """
+        {tmp_path}/study/myrepo:
+            {CLONE_NAME}: git+file://{repo_dir}
+            remotes:
+              mymirror: git+file://{repo_dir}
+        """,
     ],
 )
 def test_simple_url(
@@ -236,23 +247,24 @@ def test_simple_url(
     capsys: pytest.LogCaptureFixture,
 ):
     """Test config output with varation of config formats"""
-    dummy_repo_name = "dummy_repo"
+    import random
+
+    dummy_repo_name = f"dummy_repo_{random.randint(1,20)}"
     dummy_repo = create_git_dummy_repo(dummy_repo_name)
 
     config_file = write_config_remote(
         tmp_path=tmp_path,
         config_tpl=config_tpl,
         repo_dir=dummy_repo,
-        clone_name="myclone",
+        clone_name=f"myclone {random.randint(1, 29)}",
     )
     configs = load_configs([str(config_file)])
 
     # TODO: Merge repos
     repos = filter_repos(configs, repo_dir="*")
     assert len(repos) == 1
-    from pprint import pprint
-
-    pprint(repos[0], indent=2)
+    # from pprint import pprint
+    # pprint(repos[0], indent=2)
 
     def update():
 
@@ -270,12 +282,11 @@ def test_simple_url(
                 assert current_remote.fetch_url == repo_url
 
     update()
-    captured = capsys.readouterr()
-    assert f"Updating remote " in captured.out
+    # captured = capsys.readouterr()
+    # assert "Updating remote " in captured.out
 
     update()
-
     captured = capsys.readouterr()
     assert (
-        not f"Updating remote " in captured.out
-    ), "should not set overwrite remote a second ime"
+        not "Updating remote " in captured.out
+    ), "should not set overwrite remote a second time"
