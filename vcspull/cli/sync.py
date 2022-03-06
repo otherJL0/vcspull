@@ -125,8 +125,9 @@ def update_repo(repo_dict):
     r = create_repo_from_pip_url(**repo_dict)  # Creates the repo object
 
     remote_settings = repo_dict.get("remotes", {})
-    print(f"remote_settings: {remote_settings}")
+    print(f"before remote_settings: {remote_settings}")
     if remote_settings.get("origin", {}) == {}:
+        print("setting origin by hand")
         from libvcs.git import GitRemote
 
         remote_settings["origin"] = GitRemote(
@@ -134,7 +135,7 @@ def update_repo(repo_dict):
             push_url=repo_dict["pip_url"],
             fetch_url=repo_dict["pip_url"],
         )
-
+    print(f"after remote_settings: {remote_settings}")
     remotes_updated = False
     r.update_repo()  # Creates repo if not exists and fetches
 
