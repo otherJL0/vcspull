@@ -87,9 +87,7 @@ def default_log_template(self, record):
         " ",
     ]
 
-    tpl = "".join(reset + levelname + asctime + name + reset)
-
-    return tpl
+    return "".join(reset + levelname + asctime + name + reset)
 
 
 class LogFormatter(logging.Formatter):
@@ -110,7 +108,7 @@ class LogFormatter(logging.Formatter):
 
         prefix = self.template(record) % record.__dict__
 
-        formatted = prefix + " " + record.message
+        formatted = f'{prefix} {record.message}'
         return formatted.replace("\n", "\n    ")
 
 
@@ -162,9 +160,9 @@ def debug_log_template(self, record):
         "%(lineno)d",
     ]
 
-    tpl = "".join(reset + levelname + asctime + name + module_funcName + lineno + reset)
-
-    return tpl
+    return "".join(
+        reset + levelname + asctime + name + module_funcName + lineno + reset
+    )
 
 
 class DebugLogFormatter(LogFormatter):
@@ -179,13 +177,7 @@ class RepoLogFormatter(LogFormatter):
         record.message = "".join(
             [Fore.MAGENTA, Style.BRIGHT, record.message, Fore.RESET, Style.RESET_ALL]
         )
-        return "{}|{}| {}({}) {}".format(
-            Fore.GREEN + Style.DIM,
-            record.repo_name,
-            Fore.YELLOW,
-            record.repo_vcs,
-            Fore.RESET,
-        )
+        return f"{Fore.GREEN + Style.DIM}|{record.repo_name}| {Fore.YELLOW}({record.repo_vcs}) {Fore.RESET}"
 
 
 class RepoFilter(logging.Filter):
@@ -194,4 +186,4 @@ class RepoFilter(logging.Filter):
 
     def filter(self, record):
         """Only return a record if a repo_vcs object."""
-        return True if "repo_vcs" in record.__dict__ else False
+        return "repo_vcs" in record.__dict__

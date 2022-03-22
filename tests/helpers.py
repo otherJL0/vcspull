@@ -15,7 +15,7 @@ class EnvironmentVarGuard:
     def __init__(self):
         self._environ = os.environ
         self._unset = set()
-        self._reset = dict()
+        self._reset = {}
 
     def set(self, envvar, value):
         if envvar not in self._environ:

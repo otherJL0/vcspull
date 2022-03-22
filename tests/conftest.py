@@ -44,7 +44,7 @@ def repos_path(user_path: pathlib.Path, request: pytest.FixtureRequest):
 def git_repo_kwargs(repos_path: pathlib.Path, git_dummy_repo_dir):
     """Return kwargs for :func:`create_repo_from_pip_url`."""
     return {
-        "url": "git+file://" + git_dummy_repo_dir,
+        "url": f"git+file://{git_dummy_repo_dir}",
         "parent_dir": str(repos_path),
         "name": "repo_name",
     }
@@ -67,7 +67,7 @@ def create_git_dummy_repo(repos_path: pathlib.Path) -> pathlib.Path:
 
         run(["touch", testfile_filename], cwd=repo_path)
         run(["git", "add", testfile_filename], cwd=repo_path)
-        run(["git", "commit", "-m", "test file for %s" % repo_name], cwd=repo_path)
+        run(["git", "commit", "-m", f"test file for {repo_name}"], cwd=repo_path)
 
         return repo_path
 

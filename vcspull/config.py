@@ -120,7 +120,7 @@ def find_home_config_files(filetype=["json", "yaml"]):
             " quickstart."
         )
     else:
-        if sum(filter(None, [has_json_config, has_yaml_config])) > int(1):
+        if sum(filter(None, [has_json_config, has_yaml_config])) > 1:
             raise exc.MultipleConfigWarning()
         if has_yaml_config:
             configs.append(yaml_config)
@@ -170,15 +170,14 @@ def find_config_files(
         if isinstance(match, list):
             for m in match:
                 configs.extend(find_config_files(path, m, filetype))
+        elif isinstance(filetype, list):
+            for f in filetype:
+                configs.extend(find_config_files(path, match, f))
         else:
-            if isinstance(filetype, list):
-                for f in filetype:
-                    configs.extend(find_config_files(path, match, f))
-            else:
-                match = os.path.join(path, match)
-                match += f".{filetype}"
+            match = os.path.join(path, match)
+            match += f".{filetype}"
 
-                configs = glob.glob(match)
+            configs = glob.glob(match)
 
     return configs
 
@@ -213,9 +212,7 @@ def load_configs(files, cwd=os.getcwd()):
             repos.extend(newrepos)
             continue
 
-        dupes = detect_duplicate_repos(repos, newrepos)
-
-        if dupes:
+        if dupes := detect_duplicate_repos(repos, newrepos):
             msg = ("repos with same path + different VCS detected!", dupes)
             raise exc.VCSPullException(msg)
         repos.extend(newrepos)
@@ -239,9 +236,6 @@ def detect_duplicate_repos(repos1, repos2):
     list of dict, or None
         Duplicate repos
     """
-    dupes = []
-    path_dupe_repos = []
-
     curpaths = [r["repo_dir"] for r in repos1]
     newpaths = [r["repo_dir"] for r in repos2]
     path_duplicates = list(set(curpaths).intersection(newpaths))
@@ -249,13 +243,14 @@ def detect_duplicate_repos(repos1, repos2):
     if not path_duplicates:
         return None
 
-    path_dupe_repos.extend(
-        [r for r in repos2 if any(r["repo_dir"] == p for p in path_duplicates)]
-    )
+    path_dupe_repos = [
+        r for r in repos2 if any(r["repo_dir"] == p for p in path_duplicates)
+    ]
 
     if not path_dupe_repos:
         return None
 
+    dupes = []
     for n in path_dupe_repos:
         currepo = next((r for r in repos1 if r["repo_dir"] == n["repo_dir"]), None)
         if n["url"] != currepo["url"]:
@@ -277,13 +272,12 @@ def in_dir(config_dir=CONFIG_DIR, extensions=[".yml", ".yaml", ".json"]):
     -------
     list
     """
-    configs = []
-
-    for filename in os.listdir(config_dir):
-        if is_config_file(filename, extensions) and not filename.startswith("."):
-            configs.append(filename)
-
-    return configs
+    return [
+        filename
+        for filename in os.listdir(config_dir)
+        if is_config_file(filename, extensions)
+        and not filename.startswith(".")
+    ]
 
 
 def filter_repos(config, repo_dir=None, vcs_url=None, name=None):

@@ -95,11 +95,9 @@ def test_scan_config(tmp_path: pathlib.Path):
     garbage_file.write_text("wat", encoding="utf-8")
 
     for r, d, f in os.walk(str(tmp_path)):
-        for filela in (
+        config_files.extend(str(tmp_path / filela) for filela in (
             x for x in f if x.endswith((".json", "yaml")) and x.startswith(".vcspull")
-        ):
-            config_files.append(str(tmp_path / filela))
-
+        ))
     files = 0
     if exists(str(tmp_path / ".vcspull.json")):
         files += 1
@@ -290,7 +288,7 @@ def test_find_config_match_list(config_path, yaml_config, json_config):
     assert str(yaml_config) in config_files
     assert len([c for c in config_files if str(yaml_config) in c]) == 1
     assert str(json_config) not in config_files
-    assert len([c for c in config_files if str(json_config) in c]) == 0
+    assert not [c for c in config_files if str(json_config) in c]
 
 
 def test_find_config_filetype_string(
