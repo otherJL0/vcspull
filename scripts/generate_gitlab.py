@@ -55,16 +55,17 @@ try:
 
     config_file = open(config_filename, "w")
 except IOError:
-    print("File %s not accesible" % (config_filename))
+    print(f"File {config_filename} not accesible")
     sys.exit(1)
 
 result = requests.get(
-    "%s/api/v4/groups/%s/projects" % (gitlab_host, gitlab_namespace),
+    f"{gitlab_host}/api/v4/groups/{gitlab_namespace}/projects",
     params={"include_subgroups": "true", "per_page": "100"},
-    headers={"Authorization": "Bearer %s" % (gitlab_token)},
+    headers={"Authorization": f"Bearer {gitlab_token}"},
 )
 
-if 200 != result.status_code:
+
+if result.status_code != 200:
     print("Error: ", result)
     sys.exit(1)
 
@@ -76,7 +77,7 @@ for group in result.json():
     namespace_path = group["namespace"]["full_path"]
     reponame = group["path"]
 
-    path = "%s/%s" % (path_prefix, namespace_path)
+    path = f"{path_prefix}/{namespace_path}"
 
     if path not in config:
         config[path] = {}
@@ -85,9 +86,10 @@ for group in result.json():
     # config[path][reponame] = 'git+ssh://%s' % (url_to_repo)
 
     config[path][reponame] = {
-        "url": "git+ssh://%s" % (url_to_repo),
-        "remotes": {"origin": "ssh://%s" % (url_to_repo)},
+        "url": f"git+ssh://{url_to_repo}",
+        "remotes": {"origin": f"ssh://{url_to_repo}"},
     }
+
 
 config_yaml = yaml.dump(config)
 

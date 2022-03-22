@@ -34,7 +34,7 @@ def get_repo_completions(ctx: click.core.Context, args, incomplete):
         found_repos.extend(
             filter_repos(configs, repo_dir=repo_dir, vcs_url=vcs_url, name=name)
         )
-    if len(found_repos) == 0:
+    if not found_repos:
         found_repos = configs
 
     return [o["name"] for o in found_repos if incomplete in o["name"]]
